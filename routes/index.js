@@ -1,12 +1,15 @@
-
 const router = require("express").Router();
 const clothingItem = require("./clothingItems");
-const user = require("./users");
+const { getUsers, findUser, createUser } = require("../controllers/user");
 const { DOES_NOT_EXIST_CODE } = require("../utils/errors");
 
-router.use("/items", clothingItem);
+router.get("/users", getUsers);
 
-router.use("/users", user);
+router.get("/users/:userId", findUser);
+
+router.post("/users", createUser);
+
+router.use("/items", clothingItem);
 
 router.use((req, res) => {
   res.status(DOES_NOT_EXIST_CODE).send({

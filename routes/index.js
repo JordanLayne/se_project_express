@@ -1,14 +1,12 @@
 const router = require("express").Router();
+
 const clothingItem = require("./clothingItems");
-const { getUsers, findUser, createUser } = require("../controllers/user");
+
+const users = require("./users");
+
 const { DOES_NOT_EXIST_CODE } = require("../utils/errors");
 
-router.get("/users", getUsers);
-
-router.get("/users/:userId", findUser);
-
-router.post("/users", createUser);
-
+router.use("/users", users);
 router.use("/items", clothingItem);
 
 router.use((req, res) => {

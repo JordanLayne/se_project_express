@@ -4,11 +4,11 @@ const mongoose = require("mongoose");
 
 const bodyParser = require("body-parser");
 
+const helmet = require("helmet");
+
 const routes = require("./routes/index");
 
 const limiter = require("./rateLimitConfig");
-
-const helmet = require("helmet");
 
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 

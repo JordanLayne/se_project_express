@@ -6,47 +6,48 @@ const {
   DEFAULT_CODE,
 } = require("../utils/errors");
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(() => {
-      res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-    });
+module.exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+  }
 };
 
-module.exports.findUser = (req, res) => {
-  User.findById(req.params.userId)
-    .orFail(() => {
+module.exports.findUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).orFail(() => {
       throw ERROR_DOES_NOT_EXIST;
-    })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.statusCode === DOES_NOT_EXIST_CODE) {
-        res.status(DOES_NOT_EXIST_CODE).send({
-          message: "Requested data could not be found",
-        });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Id provided was invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
     });
+    res.send({ data: user });
+  } catch (error) {
+    if (error.statusCode === DOES_NOT_EXIST_CODE) {
+      res.status(DOES_NOT_EXIST_CODE).send({
+        message: "Requested data could not be found",
+      });
+    } else if (error.name === "CastError") {
+      res.status(INVALID_DATA_CODE).send({
+        message: "Id provided was invalid",
+      });
+    } else {
+      res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+    }
+  }
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, avatar } = req.body;
-
-  User.create({ name, avatar })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Data provided is invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
-    });
+module.exports.createUser = async (req, res) => {
+  try {
+    const { name, avatar } = req.body;
+    const user = await User.create({ name, avatar });
+    res.send(user);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      res.status(INVALID_DATA_CODE).send({
+        message: "Data provided is invalid",
+      });
+    } else {
+      res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+    }
+  }
 };

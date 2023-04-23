@@ -1,18 +1,34 @@
 const Item = require('../models/clothingItems');
-
+const User = require('../models/user');
 const {
   ERROR_DOES_NOT_EXIST,
   INVALID_DATA_CODE,
   DOES_NOT_EXIST_CODE,
   DEFAULT_CODE,
-} = require("../utils/errors");
+} = require('../utils/errors');
+
+const handleErrors = (err, res) => {
+  if (err.statusCode === DOES_NOT_EXIST_CODE) {
+    res.status(DOES_NOT_EXIST_CODE).send({
+      message: 'Requested data could not be found',
+    });
+  } else if (err.name === 'CastError') {
+    res.status(INVALID_DATA_CODE).send({
+      message: 'Id provided was invalid',
+    });
+  } else if (err.name === 'ValidationError') {
+    res.status(INVALID_DATA_CODE).send({
+      message: 'Data provided is invalid',
+    });
+  } else {
+    res.status(DEFAULT_CODE).send({ message: 'Error with the server' });
+  }
+};
 
 module.exports.getClothing = (req, res) => {
   Item.find({})
     .then((items) => res.send(items))
-    .catch(() => {
-      res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-    });
+    .catch((err) => handleErrors(err, res));
 };
 
 module.exports.removeClothing = (req, res) => {
@@ -21,19 +37,7 @@ module.exports.removeClothing = (req, res) => {
       throw ERROR_DOES_NOT_EXIST;
     })
     .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.statusCode === DOES_NOT_EXIST_CODE) {
-        res.status(DOES_NOT_EXIST_CODE).send({
-          message: "Requested data could not be found",
-        });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Id provided was invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
-    });
+    .catch((err) => handleErrors(err, res));
 };
 
 module.exports.addClothing = (req, res) => {
@@ -45,15 +49,7 @@ module.exports.addClothing = (req, res) => {
       res.status(201);
       res.send({ data: item });
     })
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Data provided is invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
-    });
+    .catch((err) => handleErrors(err, res));
 };
 
 module.exports.likeItem = (req, res) => {
@@ -66,19 +62,7 @@ module.exports.likeItem = (req, res) => {
       throw ERROR_DOES_NOT_EXIST;
     })
     .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.statusCode === DOES_NOT_EXIST_CODE) {
-        res.status(DOES_NOT_EXIST_CODE).send({
-          message: "Requested data could not be found",
-        });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Id provided was invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
-    });
+    .catch((err) => handleErrors(err, res));
 };
 
 module.exports.dislikeItem = (req, res) => {
@@ -91,17 +75,31 @@ module.exports.dislikeItem = (req, res) => {
       throw ERROR_DOES_NOT_EXIST;
     })
     .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.statusCode === DOES_NOT_EXIST_CODE) {
-        res.status(DOES_NOT_EXIST_CODE).send({
-          message: "Requested data could not be found",
-        });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Id provided was invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
-    });
+    .catch((err) => handleErrors(err, res));
 };
+
+module.exports.getUsers = (req, res) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch((err) => handleErrors(err, res));
+};
+
+module.exports.findUser = (req, res) => {
+  User.findById(req.params.userId)
+    .orFail(() => {
+      throw ERROR_DOES_NOT_EXIST;
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((err) => handleErrors(err, res));
+};
+
+module.exports.createUser = (req, res) => {
+  const { name, avatar } = req.body;
+
+  User.create({ name, avatar })
+    .then((user) => res.send(user))
+    .catch((err) => handleErrors(err, res));
+};
+
+module.exports.ERROR_DOES_NOT_EXIST = ERROR_DOES_NOT_EXIST;
+module.exports.INVALID_DATA_CODE = INVALID_DATA_CODE;

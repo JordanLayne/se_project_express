@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const Item = require('../models/clothingItems');
 const User = require('../models/user');
 const {
@@ -8,15 +9,16 @@ const {
 } = require('../utils/errors');
 
 const handleErrors = (err, res) => {
-  if (err.statusCode === DOES_NOT_EXIST_CODE) {
+  const { statusCode, name } = err;
+  if (statusCode === DOES_NOT_EXIST_CODE) {
     res.status(DOES_NOT_EXIST_CODE).send({
       message: 'Requested data could not be found',
     });
-  } else if (err.name === 'CastError') {
+  } else if (name === 'CastError') {
     res.status(INVALID_DATA_CODE).send({
       message: 'Id provided was invalid',
     });
-  } else if (err.name === 'ValidationError') {
+  } else if (name === 'ValidationError') {
     res.status(INVALID_DATA_CODE).send({
       message: 'Data provided is invalid',
     });
@@ -32,17 +34,30 @@ module.exports.getClothing = (req, res) => {
 };
 
 module.exports.removeClothing = (req, res) => {
-  Item.findByIdAndDelete(req.params.itemId)
-    .orFail(() => {
-      throw ERROR_DOES_NOT_EXIST;
+  const { itemId } = req.params;
+  const { _id: userId } = req.user;
+
+  Item.findById(itemId)
+    .then((item) => {
+      if (!item) {
+        throw ERROR_DOES_NOT_EXIST;
+      }
+
+      if (item.owner.toString() !== userId.toString()) {
+        res.status(403).send({ message: 'You are not authorized to delete this item' });
+      } else {
+        return Item.findByIdAndDelete(itemId)
+          .then((deletedItem) => {
+            res.send({ data: deletedItem });
+          });
+      }
     })
-    .then((item) => res.send({ data: item }))
     .catch((err) => handleErrors(err, res));
 };
 
 module.exports.addClothing = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  const owner = req.user._id;
+  const { _id: owner } = req.user;
 
   Item.create({ name, weather, imageUrl, owner })
     .then((item) => {
@@ -51,7 +66,6 @@ module.exports.addClothing = (req, res) => {
     })
     .catch((err) => handleErrors(err, res));
 };
-
 module.exports.likeItem = (req, res) => {
   Item.findByIdAndUpdate(
     req.params.itemId,

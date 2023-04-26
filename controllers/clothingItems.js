@@ -1,4 +1,4 @@
-/* eslint-disable consistent-return */
+
 const Item = require('../models/clothingItems');
 const User = require('../models/user');
 const {
@@ -6,6 +6,7 @@ const {
   INVALID_DATA_CODE,
   DOES_NOT_EXIST_CODE,
   DEFAULT_CODE,
+  UNAUTHORIZED_CODE
 } = require('../utils/errors');
 
 const handleErrors = (err, res) => {
@@ -44,9 +45,9 @@ module.exports.removeClothing = (req, res) => {
       }
 
       if (item.owner.toString() !== userId.toString()) {
-        res.status(403).send({ message: 'You are not authorized to delete this item' });
+        res.status(UNAUTHORIZED_CODE).send({ message: 'You are not authorized to delete this item' });
       } else {
-        return Item.findByIdAndDelete(itemId)
+         Item.findByIdAndDelete(itemId)
           .then((deletedItem) => {
             res.send({ data: deletedItem });
           });

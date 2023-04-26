@@ -55,13 +55,16 @@ module.exports = {
           message: "User with this email already exists",
         });
       }
+      const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
         name,
         avatar,
         email,
-        password: await bcrypt.hash(password, 10),
+        password: hashedPassword,
       });
-     res.send({ data: user });
+
+      const { _id, name: userName, avatar: userAvatar, email: userEmail } = user;
+      res.send({ data: { _id, name: userName, avatar: userAvatar, email: userEmail } });
     } catch (error) {
       if (error.name === "ValidationError") {
         res.status(INVALID_DATA_CODE).send({

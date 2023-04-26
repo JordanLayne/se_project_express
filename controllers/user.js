@@ -61,7 +61,7 @@ module.exports = {
         email,
         password: await bcrypt.hash(password, 10),
       });
-    return  res.send({ data: user });
+     res.send({ data: user });
     } catch (error) {
       if (error.name === "ValidationError") {
         res.status(INVALID_DATA_CODE).send({

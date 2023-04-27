@@ -18,11 +18,33 @@ const {
 
 module.exports = {
   async getUsers(req, res) {
-    User.find({})
-      .then((users) => res.send(users))
-      .catch(() => {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+    try {
+      const users = await User.find({});
+      res.send(users);
+    } catch (error) {
+      res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+    }
+  },
+
+  async findUser(req, res) {
+    try {
+      const user = await User.findById(req.params.userId).orFail(() => {
+        throw ERROR_DOES_NOT_EXIST;
       });
+      res.send({ data: user });
+    } catch (error) {
+      if (error.statusCode === DOES_NOT_EXIST_CODE) {
+        res.status(DOES_NOT_EXIST_CODE).send({
+          message: "Requested data could not be found",
+        });
+      } else if (error.name === "CastError") {
+        res.status(INVALID_DATA_CODE).send({
+          message: "Id provided was invalid",
+        });
+      } else {
+        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
+      }
+    }
   },
 
   async createUser(req, res) {

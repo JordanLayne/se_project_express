@@ -96,21 +96,25 @@ module.exports = {
   },
 
   async getCurrentUser(req, res) {
-    try {
-      const user = await User.findById(req.user._id).orFail(() => {
-        throw ERROR_DOES_NOT_EXIST;
-      });
-      res.send({ data: user });
-    } catch (error) {
+    User.findById(req.user._id)
+    .orFail(() => {
+      throw ERROR_DOES_NOT_EXIST;
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((error) => {
       if (error.statusCode === DOES_NOT_EXIST_CODE) {
         res.status(DOES_NOT_EXIST_CODE).send({
           message: "Requested data could not be found",
         });
+      } else if (error.name === "CastError") {
+        res.status(INVALID_DATA_CODE).send({
+          message: "Id provided was invalid",
+        });
       } else {
         res.status(DEFAULT_CODE).send({ message: "Error with the server" });
       }
-    }
-  },
+    });
+},
   async updateUserProfile(req, res) {
     try {
       const { name, avatar } = req.body;

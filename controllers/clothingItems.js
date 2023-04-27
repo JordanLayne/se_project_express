@@ -1,6 +1,8 @@
 
 const Item = require('../models/clothingItems');
+
 const User = require('../models/user');
+
 const {
   ERROR_DOES_NOT_EXIST,
   INVALID_DATA_CODE,
@@ -10,19 +12,10 @@ const {
 } = require('../utils/errors');
 
 const handleErrors = (err, res) => {
-  const { statusCode, name } = err;
-  if (statusCode === DOES_NOT_EXIST_CODE) {
-    res.status(DOES_NOT_EXIST_CODE).send({
-      message: 'Requested data could not be found',
-    });
-  } else if (name === 'CastError') {
-    res.status(INVALID_DATA_CODE).send({
-      message: 'Id provided was invalid',
-    });
-  } else if (name === 'ValidationError') {
-    res.status(INVALID_DATA_CODE).send({
-      message: 'Data provided is invalid',
-    });
+  if (err.statusCode === DOES_NOT_EXIST_CODE) {
+    res.status(DOES_NOT_EXIST_CODE).send({ message: 'Requested data could not be found' });
+  } else if (err.name === 'CastError' || err.name === 'ValidationError') {
+    res.status(INVALID_DATA_CODE).send({ message: 'Invalid data provided' });
   } else {
     res.status(DEFAULT_CODE).send({ message: 'Error with the server' });
   }
@@ -47,12 +40,10 @@ module.exports.removeClothing = (req, res) => {
       if (item.owner.toString() !== userId.toString()) {
         res.status(UNAUTHORIZED_CODE).send({ message: 'You are not authorized to delete this item' });
       } else {
-         Item.findByIdAndDelete(itemId)
-          .then((deletedItem) => {
-            res.send({ data: deletedItem });
-          });
+        return Item.findByIdAndDelete(itemId);
       }
     })
+    .then((deletedItem) => res.send({ data: deletedItem }))
     .catch((err) => handleErrors(err, res));
 };
 
@@ -67,11 +58,12 @@ module.exports.addClothing = (req, res) => {
     })
     .catch((err) => handleErrors(err, res));
 };
+
 module.exports.likeItem = (req, res) => {
   Item.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true, runValidators: true }
   )
     .orFail(() => {
       throw ERROR_DOES_NOT_EXIST;
@@ -107,6 +99,7 @@ module.exports.findUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => handleErrors(err, res));
 };
+
 
 module.exports.createUser = (req, res) => {
   const { name, avatar } = req.body;

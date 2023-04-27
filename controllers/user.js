@@ -1,14 +1,18 @@
 const bcrypt = require("bcryptjs");
+
 const jwt = require("jsonwebtoken");
+
 const {
   ERROR_DOES_NOT_EXIST,
   INVALID_DATA_CODE,
   DOES_NOT_EXIST_CODE,
   DEFAULT_CODE,
   CONFLICT_CODE,
+  UNAUTHORIZED_CODE
 } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
+
 const User = require("../models/user");
 
 module.exports = {
@@ -77,16 +81,18 @@ module.exports = {
   },
 
   async login(req, res) {
-    try {
-      const { email, password } = req.body;
-      const user = await User.findUserByCredentials(email, password);
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
+    const { email, password } = req.body;
+
+    return User.findUserByCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        res.send({ token });
+      })
+      .catch((error) => {
+        res.status(UNAUTHORIZED_CODE).send({ message: error.message});
       });
-      return res.send({ token });
-    } catch (error) {
-      return res.status(401).send({ message: "Invalid email or password" });
-    }
   },
 
   async getCurrentUser(req, res) {

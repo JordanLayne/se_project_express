@@ -2,6 +2,10 @@ const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
 
+const User = require("../models/user");
+
+const JWT_SECRET  = require("../utils/config");
+
 const {
   ERROR_DOES_NOT_EXIST,
   INVALID_DATA_CODE,
@@ -11,9 +15,6 @@ const {
   UNAUTHORIZED_CODE,
 } = require("../utils/errors");
 
-const { JWT_SECRET } = require("../utils/config");
-
-const User = require("../models/user");
 
 module.exports = {
   async getUsers(req, res) {
@@ -34,12 +35,12 @@ module.exports = {
           .then((user) => {
             res.send({ name, avatar, email, _id: user._id });
           })
-          .catch((err) => {
-            if (err.name === "ValidationError") {
+          .catch((error) => {
+            if (error.name === "ValidationError") {
               res.status(INVALID_DATA_CODE).send({
                 message: "Data provided is invalid",
               });
-            } else if (err.code === 11000) {
+            } else if (error.code === 11000) {
               res
                 .status(CONFLICT_CODE)
                 .send({ message: "User with this email already exists" });
@@ -98,12 +99,12 @@ module.exports = {
         throw ERROR_DOES_NOT_EXIST;
       })
       .then((user) => res.send(user))
-      .catch((err) => {
-        if (err.name === "ValidationError") {
+      .catch((error) => {
+        if (error.name === "ValidationError") {
           res.status(INVALID_DATA_CODE).send({
             message: "Data provided is invalid",
           });
-        } else if (err.statusCode === DOES_NOT_EXIST_CODE) {
+        } else if (error.statusCode === DOES_NOT_EXIST_CODE) {
           res.status(DOES_NOT_EXIST_CODE).send({
             message: "Requested data could not be found",
           });

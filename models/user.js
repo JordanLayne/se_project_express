@@ -40,15 +40,21 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.statics.findUserByCredentials = async function findUserByCredentials(email, password) {
-  const user = await this.findOne({ email });
-  if (!user) {
-    throw new Error("Invalid email or password");
-  }
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
-  return user;
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email })
+    .select("+password")
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error("Incorrect password or email"));
+      }
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(new Error("Incorrect password or email"));
+        }
+
+        return user;
+      });
+    });
 };
 module.exports = mongoose.model("user", userSchema);

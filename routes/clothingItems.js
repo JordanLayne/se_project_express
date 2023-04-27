@@ -8,7 +8,7 @@ const {
 } = require("../controllers/clothingItems");
 const auth = require("../middlewares/auth");
 
-router.get("/", auth, getClothing);
+router.get("/", getClothing);
 
 router.delete("/:itemId", auth, removeClothing);
 

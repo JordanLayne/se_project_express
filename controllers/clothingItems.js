@@ -22,38 +22,21 @@ module.exports.getClothing = (req, res) => {
     });
 };
 
-module.exports.removeClothing = (req, res) => {
+module.exports.removeClothing = async (req, res) => {
   const owner = req.user._id;
 
-  Item.findById(req.params.itemId)
+  const item = await Item.findById(req.params.itemId).orFail(() => {
+    throw ERROR_DOES_NOT_EXIST;
+  });
 
-    .orFail(() => {
-      throw ERROR_DOES_NOT_EXIST;
-    })
-
-    .then((item) => {
-      if (String(item.owner) !== owner) {
-        return res.status(UNAUTHORIZED_CODE).send({
-          message: "You do not have permission to delete this resource",
-        });
-      }
-
-      return item.deleteOne().then(() => res.send({ data: item }));
-    })
-
-    .catch((err) => {
-      if (err.statusCode === DOES_NOT_EXIST_CODE) {
-        res.status(DOES_NOT_EXIST_CODE).send({
-          message: "Requested data could not be found",
-        });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_CODE).send({
-          message: "Id provided was invalid",
-        });
-      } else {
-        res.status(DEFAULT_CODE).send({ message: "Error with the server" });
-      }
+  if (String(item.owner) !== owner) {
+    return res.status(UNAUTHORIZED_CODE).send({
+      message: "You do not have permission to delete this resource",
     });
+  }
+
+  await item.deleteOne();
+ return res.send({ data: item });
 };
 
 module.exports.addClothing = (req, res) => {

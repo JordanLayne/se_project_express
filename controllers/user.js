@@ -93,7 +93,12 @@ module.exports = {
   async updateUser(req, res) {
     const { name, avatar } = req.body;
 
-    User.findByIdAndUpdate(req.user._id, { name, avatar })
+    User.findByIdAndUpdate(req.user._id, {
+      name,
+      avatar,
+      runValidators: true,
+      new: true,
+    })
       .orFail(() => {
         throw ERROR_DOES_NOT_EXIST;
       })

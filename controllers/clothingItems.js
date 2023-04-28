@@ -1,6 +1,5 @@
 const Item = require("../models/clothingItems");
 
-
 const {
   ERROR_DOES_NOT_EXIST,
   INVALID_DATA_CODE,
@@ -115,4 +114,3 @@ module.exports.dislikeItem = (req, res) => {
       }
     });
 };
-

@@ -1,9 +1,8 @@
 const jwt = require("jsonwebtoken");
 
-const { JWT_SECRET = '...' } = process.env;
+const { JWT_SECRET } = require('../utils/config')
 
-const { UNAUTHORIZED_CODE } = require('../utils/errors');
-
+const { UNAUTHORIZED_CODE } = require("../utils/errors");
 
 const handleAuthError = (res) => {
   res.status(UNAUTHORIZED_CODE).send({ message: "Authorization Error" });
@@ -19,6 +18,7 @@ module.exports = (req, res, next) => {
   }
 
   const token = exctractBearerToken(authorization);
+
   let payload;
 
   try {

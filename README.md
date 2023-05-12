@@ -16,3 +16,7 @@ JSON Web Tokens (JWT) for authentication
  
 
 `npm run dev` — to launch the server with the hot reload feature 
+
+
+Domain Name
+www.attireadvisor.chickenkiller.com

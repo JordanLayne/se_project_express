@@ -1,10 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const limiter = require("./utils/config");
 const { errors } = require("celebrate");
 const helmet = require("helmet");
 const cors = require("cors");
+const limiter = require("./utils/config");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 const errorHandler = require("./middlewares/errorMiddleware");
 const routes = require("./routes/index");
@@ -15,7 +15,6 @@ mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 const app = express();
 
-app.use(errorHandler);
 app.use(helmet());
 app.use(cors());
 app.use(requestLogger);
@@ -29,10 +28,10 @@ app.get("/crash-test", () => {
 });
 
 app.use(limiter);
-app.use(errors());
 app.use(routes);
 app.use(errorLogger);
-
+app.use(errors());
+app.use(errorHandler);
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
 });

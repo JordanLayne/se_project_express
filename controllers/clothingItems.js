@@ -6,17 +6,19 @@ const BadRequestError = require("../errors/BadRequestError");
 module.exports.getClothing = (req, res, next) => {
   Item.find({})
     .then((items) => res.send(items))
-    .catch(() => {
-      next(new BadRequestError("Error with the server"));
-    });
+    .catch((error) => {
+      next(error)
+    })
 };
 
 module.exports.removeClothing = async (req, res, next) => {
   const owner = req.user._id;
 
-  const item = await Item.findById(req.params.itemId).orFail(() => {
+  const item = await Item.findById(req.params.itemId);
+
+  if (!item) {
     throw new NotFoundError("Item not found");
-  });
+  }
 
   if (String(item.owner) !== owner) {
     return next(
@@ -25,7 +27,7 @@ module.exports.removeClothing = async (req, res, next) => {
   }
 
   await item.deleteOne();
-  res.send({ data: item });
+  res.send({ data: item })
 };
 
 module.exports.addClothing = (req, res, next) => {
@@ -41,7 +43,7 @@ module.exports.addClothing = (req, res, next) => {
       if (err.name === "ValidationError") {
         next(new BadRequestError("Data provided is invalid"));
       } else {
-        next(new BadRequestError("Error with the server"));
+        next(err);
       }
     });
 };
@@ -56,15 +58,7 @@ module.exports.likeItem = (req, res, next) => {
       throw new NotFoundError("Item not found");
     })
     .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err instanceof NotFoundError) {
-        next(new NotFoundError("Requested data could not be found"));
-      } else if (err.name === "CastError") {
-        next(new BadRequestError("Id provided was invalid"));
-      } else {
-        next(new BadRequestError("Error with the server"));
-      }
-    });
+    .catch(next);
 };
 
 module.exports.dislikeItem = (req, res, next) => {
@@ -77,13 +71,5 @@ module.exports.dislikeItem = (req, res, next) => {
       throw new NotFoundError("Item not found");
     })
     .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err instanceof NotFoundError) {
-        next(new NotFoundError("Requested data could not be found"));
-      } else if (err.name === "CastError") {
-        next(new BadRequestError("Id provided was invalid"));
-      } else {
-        next(new BadRequestError("Error with the server"));
-      }
-    });
+    .catch(next);
 };

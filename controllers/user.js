@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 require('dotenv').config();
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET = 'default_secret' } = process.env;
 
 const User = require("../models/user");
 
@@ -35,12 +35,12 @@ module.exports = {
             res.send({ name, avatar, email, _id: user._id });
           })
           .catch((err) => {
-            if (err.name === "ValidationError") {
-              throw new BadRequestError("Data provided is invalid");
-            } else if (err.code === 11000) {
-              throw new ConflictError("User with this email already exists");
+            if (err.code === 11000) {
+              next(new ConflictError("User with this email already exists"));
+            } else if (err.name === "ValidationError") {
+              next(new BadRequestError("Data provided is invalid"));
             } else {
-              throw new Error("Error with the server");
+              next(err);
             }
           });
       })

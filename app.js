@@ -1,37 +1,25 @@
 const express = require("express");
-
 const mongoose = require("mongoose");
-
 const bodyParser = require("body-parser");
-
-const { errors } = require("celebrate");
-
-const helmet = require("helmet");
-
-const cors = require("cors");
-
-const errorHandler = require("./middlewares/errorMiddleware");
-
-const routes = require("./routes/index");
-
 const limiter = require("./rateLimitConfig");
-
+const { errors } = require("celebrate");
+const helmet = require("helmet");
+const cors = require("cors");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
-
-mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
+const errorHandler = require("./middlewares/errorMiddleware");
+const routes = require("./routes/index");
 
 const { PORT = 3001 } = process.env;
 
+mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
+
 const app = express();
 
-app.use(cors());
-
+app.use(errorHandler);
 app.use(helmet());
-
+app.use(cors());
 app.use(requestLogger);
-
 app.use(bodyParser.json());
-
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/crash-test", () => {
@@ -40,14 +28,11 @@ app.get("/crash-test", () => {
   }, 0);
 });
 
+app.use(limiter);
+app.use(errors());
+app.use(routes);
 app.use(errorLogger);
 
-app.use(errors());
-
-app.use(errorHandler);
-
-app.use(limiter);
-
-app.use(routes);
-
-app.listen(PORT, () => {});
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

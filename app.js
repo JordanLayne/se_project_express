@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const limiter = require("./rateLimitConfig");
+const limiter = require("./utils/config");
 const { errors } = require("celebrate");
 const helmet = require("helmet");
 const cors = require("cors");

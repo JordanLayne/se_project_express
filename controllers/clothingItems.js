@@ -14,20 +14,22 @@ module.exports.getClothing = (req, res, next) => {
 module.exports.removeClothing = async (req, res, next) => {
   const owner = req.user._id;
 
-  const item = await Item.findById(req.params.itemId);
+  Item.findById(req.params.itemId)
+    .orFail(() => {
+      throw new NotFoundError("Item with this ID does not exist");
+    })
+    .then((item) => {
+      if (String(item.owner) !== owner) {
+        next(
+          new ForbiddenError(
+            "You do not have permission to delete this resource"
+          )
+        );
+      }
 
-  if (!item) {
-    throw new NotFoundError("Item not found");
-  }
-
-  if (String(item.owner) !== owner) {
-    return next(
-      new ForbiddenError("You do not have permission to delete this resource")
-    );
-  }
-
-  await item.deleteOne();
-  res.send({ data: item })
+      return item.deleteOne().then(() => res.send({ data: item }));
+    })
+    .catch(next);
 };
 
 module.exports.addClothing = (req, res, next) => {

@@ -15,17 +15,16 @@ mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 const app = express();
 
+const corsOptions = {
+  origin: 'https://www.attireadvisor.chickenkiller.com'
+};
+
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(requestLogger);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/crash-test", () => {
-  setTimeout(() => {
-    throw new Error("Server will crash now");
-  }, 0);
-});
 
 app.use(limiter);
 app.use(routes);
